@@ -1,6 +1,7 @@
 import jwt from 'jsonwebtoken'
 import bcrypt from 'bcryptjs'
 import userModel from '../models/userModel.js'
+import transporter from '../config/nodemailer.js'
 
 //?Register controller
 
@@ -28,6 +29,18 @@ export const register = async (req, res) => {
                   secure: process.env.NODE_ENV === 'production',  
                 }
             )
+
+            //Sending welcome email
+            const mailOptions = {
+                from: process.env.SENDER_EMAIL,
+                to: email,
+                subject: "Welcome to Anup's website",
+                text: `Hello ${name}, welcome to my website.`
+            }
+
+            await transporter.sendMail(mailOptions)
+
+            return res.json({success:true, message: "User created successfully" })
 
         } catch (error) {
             return res.status(500).json({success:false, message: error.message })
@@ -85,4 +98,17 @@ export const logout = async (req, res) => {
     } catch (error) {
         return res.status(500).json({success:false, message: error.message })
     }
+}
+
+//?Get user controller
+
+export const getUser = async (req, res) => {
+    
+        try {
+            const users = await userModel.find({name})
+            return res.status(200).json({success:true, users })
+    
+        } catch (error) {
+            return res.status(500).json({success:false, message: error.message })
+        }
 }
